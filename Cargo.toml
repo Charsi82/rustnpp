@@ -1,13 +1,12 @@
 [package]
 name = "rustnpp"
-version = "1.0.0"
-authors = ["ნიკა <nika.begiashvili@gmail.com>"]
+version = "1.2.0"
+authors = ["ნიკა <nika.begiashvili@gmail.com>", "Charsi <charsi2011@gmail.com"]
 
 [lib]
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
-libc="*"
-winapi="*"
-lazy_static = "0.1.*"
-user32-sys = "*"
+libc = "0.2.*"
+winapi = { version = "0.3.9", features = ["winuser"] }
+lazy_static = "1.4.*"
