@@ -1,5 +1,5 @@
 # rustnpp
-Rust plugin for notepad++
+Rust plugin for Notepad++
 
 # Features
 - run/build cargo project
@@ -7,4 +7,4 @@ Rust plugin for notepad++
 
 # Installation
 - Download and install [Rust](https://www.rust-lang.org/downloads.html) if haven't done so yet
-- Copy [plugin dll](https://github.com/nika-begiashvili/rustnpp/releases/download/1.0.0/rustnpp.dll) into your notepad++ plugins directory ( C:\Program Files (x86)\Notepad++\plugins )
+- Copy [plugin.dll](https://github.com/Charsi82/rustnpp/releases/download/ver.1.2.0/rustnpp.dll) into 'rustnpp' folder in your Notepad++ plugins directory ( C:\Program Files (x86)\Notepad++\plugins\rustnpp\ )
