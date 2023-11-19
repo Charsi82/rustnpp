@@ -1,8 +1,8 @@
 extern crate libc;
 extern crate winapi;
 
-use winapi::shared::windef;
-
+use winapi::shared::{ntdef::UCHAR, windef};
+const ITEM_NAME_MAX_SIZE:usize = 64;
 pub type wchar_t = winapi::ctypes::wchar_t;
 
 #[repr(C)]
@@ -17,45 +17,43 @@ pub struct ShortcutKey {
     pub _isCtrl: bool,
     pub _isAlt: bool,
     pub _isShift: bool,
-    pub _key: u8,
+    pub _key: UCHAR,
 }
 
 #[repr(C)]
 pub struct FuncItem {
-    pub _itemName: [wchar_t; 64],
+    pub _itemName: [wchar_t; ITEM_NAME_MAX_SIZE],
     pub _pFunc: extern "C" fn(),
     pub _cmdID: i32,
     pub _init2Check: bool,
     pub _pShKey: usize,
 }
 
-pub fn to_wide_chars(s: &str) -> Vec<wchar_t> {
-    use std::ffi::OsStr;
-    use std::os::windows::ffi::OsStrExt;
-    OsStr::new(s)
-        .encode_wide()
-        .chain(Some(0))
-        .collect::<Vec<_>>()
-}
-
-pub fn from_wide_ptr(ptr: *const u16) -> String {
-    use std::ffi::OsString;
-    use std::os::windows::ffi::OsStringExt;
-    unsafe {
-        assert!(!ptr.is_null());
-        let len = (0..std::isize::MAX)
-            .position(|i| *ptr.offset(i) == 0)
-            .unwrap();
-        let slice = std::slice::from_raw_parts(ptr, len);
-        OsString::from_wide(slice).to_string_lossy().into_owned()
+impl FuncItem {
+    pub fn new(caption: &str, func: extern "C" fn(), pSKey: usize) -> FuncItem {
+        FuncItem {
+            _itemName: function_item_text(caption),
+            _pFunc: func,
+            _cmdID: 0,
+            _init2Check: false,
+            _pShKey: pSKey,
+        }
     }
 }
 
-pub fn function_item_text(s: &str) -> [wchar_t; 64] {
-    let mut arr: [wchar_t; 64] = [0; 64];
+pub fn to_wide_chars(s: &str) -> Vec<wchar_t> {
+    let mut v: Vec<wchar_t> = s.encode_utf16().collect();
+    v.push(0);
+    v
+}
+
+pub fn function_item_text(s: &str) -> [wchar_t; ITEM_NAME_MAX_SIZE] {
+    let mut arr: [wchar_t; ITEM_NAME_MAX_SIZE] = [0; ITEM_NAME_MAX_SIZE];
     let vecStr = to_wide_chars(s);
     for (i, ch) in vecStr.iter().enumerate() {
-        arr[i] = *ch;
+        if i < ITEM_NAME_MAX_SIZE {
+            arr[i] = *ch
+        };
     }
     arr
 }

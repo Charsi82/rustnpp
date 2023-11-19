@@ -6,8 +6,9 @@ extern crate core;
 extern crate libc;
 extern crate winapi;
 
-use def::{to_wide_chars, wchar_t, FuncItem, NppData};
+use def::{to_wide_chars, wchar_t, FuncItem, NppData, ShortcutKey};
 use winapi::shared::minwindef;
+use winapi::um::winuser::VK_F10;
 
 mod def;
 mod functions;
@@ -19,8 +20,23 @@ extern crate lazy_static;
 
 lazy_static! {
     static ref PROG_NAME: Vec<wchar_t> = to_wide_chars("Rust plugin");
-    static ref FUNC_ITEMS: Vec<FuncItem> =
-        vec![plugindata::FuncItem_Run(), plugindata::FuncItem_Build(),];
+    pub static ref FUNC_ITEMS: Vec<FuncItem> = vec![
+        FuncItem::new(
+            "Run",
+            functions::runProgram,
+            &SHORT_KEY_F10 as *const ShortcutKey as usize,
+        ),
+        FuncItem::new(
+            "Build",
+            functions::buildProgram,
+            &SHORT_KEY_CTRL_F10 as *const ShortcutKey as usize,
+        ),
+        FuncItem::new("Format", functions::fmtProgram, 0),
+        FuncItem::new("Clippy", functions::runCargoClippy, 0),
+        FuncItem::new("Test", functions::runCargoTest, 0),
+        FuncItem::new("Switch Dev\\Release target", functions::switchConfig, 0),
+        FuncItem::new("About", functions::runAboutDlg, 0),
+    ];
 }
 
 #[no_mangle]
@@ -28,7 +44,6 @@ pub extern "C" fn isUnicode() -> bool {
     true
 }
 
-#[allow(unused_variables)]
 #[no_mangle]
 pub extern "C" fn setInfo(notpadPlusData: NppData) {
     unsafe {
@@ -44,21 +59,18 @@ pub extern "C" fn getName() -> *const wchar_t {
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn getFuncsArray(nbF: *mut usize) -> *const FuncItem {
-    //unsafe { *nbF = std::mem::transmute( FUNC_ITEMS.len() ) };
     unsafe { *nbF = FUNC_ITEMS.len() };
     FUNC_ITEMS.as_ptr()
 }
 
-#[allow(unused_variables)]
 #[no_mangle]
-pub extern "C" fn beNotified(notifyCode: *mut libc::c_void) {}
+pub extern "C" fn beNotified(_notifyCode: *mut libc::c_void) {}
 
-#[allow(unused_variables)]
 #[no_mangle]
 pub extern "C" fn messageProc(
-    Message: minwindef::UINT,
-    wParam: minwindef::WPARAM,
-    lParam: minwindef::LPARAM,
+    _Message: minwindef::UINT,
+    _wParam: minwindef::WPARAM,
+    _lParam: minwindef::LPARAM,
 ) -> minwindef::LRESULT {
     /*
         if (Message == WM_MOVE)
@@ -68,3 +80,17 @@ pub extern "C" fn messageProc(
     */
     minwindef::TRUE as minwindef::LRESULT
 }
+
+static SHORT_KEY_F10: ShortcutKey = ShortcutKey {
+    _isCtrl: false,
+    _isAlt: false,
+    _isShift: false,
+    _key: VK_F10 as u8,
+};
+
+static SHORT_KEY_CTRL_F10: ShortcutKey = ShortcutKey {
+    _isCtrl: true,
+    _isAlt: false,
+    _isShift: false,
+    _key: VK_F10 as u8,
+};
